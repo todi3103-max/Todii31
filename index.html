@@ -3,179 +3,134 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>My Test Simulator</title>
-  <meta name="theme-color" content="#111111" />
+  <title>Test Simulator (20Q)</title>
+  <meta name="theme-color" content="#0b0b0c" />
   <link rel="manifest" href="manifest.webmanifest">
+
   <style>
     :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
     body { margin: 0; background: #0b0b0c; color: #f2f2f2; }
-    .wrap { max-width: 860px; margin: 0 auto; padding: 18px; }
+    .wrap { max-width: 720px; margin: 0 auto; padding: 18px; }
     .card { background: #151518; border: 1px solid #24242a; border-radius: 18px; padding: 16px; }
-    h1 { font-size: 20px; margin: 0 0 10px; }
-    .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-    select, button, input[type="file"] {
+    h1 { font-size: 18px; margin: 0; }
+    .row { display:flex; gap:10px; flex-wrap: wrap; align-items:center; justify-content: space-between; }
+    .controls { display:flex; gap:10px; flex-wrap: wrap; align-items:center; }
+    select, button {
       background: #1c1c22; color: #f2f2f2; border: 1px solid #2a2a33;
-      border-radius: 12px; padding: 10px 12px; font-size: 14px;
+      border-radius: 14px; padding: 11px 12px; font-size: 14px;
     }
-    button { cursor: pointer; }
-    button:disabled { opacity: 0.6; cursor: not-allowed; }
-    .muted { color: #b5b5c0; font-size: 13px; }
+    button { cursor:pointer; }
+    button:disabled { opacity: 0.55; cursor:not-allowed; }
+    .muted { color:#b5b5c0; font-size: 13px; }
+    .pill { display:inline-block; padding: 4px 10px; border-radius: 999px; border:1px solid #2a2a33; background:#111116; font-size: 12px; color:#cfcfe1;}
+    .spacer { height: 14px; }
+
+    .qbox { background:#101014; border:1px solid #24242a; border-radius: 18px; padding: 16px; }
+    .qtop { display:flex; justify-content: space-between; align-items:center; gap:10px; flex-wrap:wrap; }
     .q { font-size: 18px; line-height: 1.35; margin: 12px 0 12px; }
-    .answers { display: grid; gap: 10px; }
+
+    .answers { display:grid; gap: 10px; }
     .ans {
-      text-align: left; width: 100%;
-      background: #1c1c22; border: 1px solid #2a2a33; border-radius: 14px;
+      text-align:left; width:100%;
+      background:#1c1c22; border:1px solid #2a2a33; border-radius: 14px;
       padding: 12px; font-size: 15px;
     }
     .ans.correct { border-color: #2f6f3b; background: #142017; }
     .ans.wrong { border-color: #7a2c2c; background: #231414; }
-    .pill { display:inline-block; padding: 4px 10px; border-radius: 999px; border:1px solid #2a2a33; background:#111116; font-size: 12px; color:#cfcfe1;}
-    .spacer { height: 12px; }
-    .grid2 { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    @media (max-width: 640px){ .grid2 { grid-template-columns: 1fr; } }
-    .stats { display:flex; gap:10px; flex-wrap: wrap; }
-    .toast { margin-top: 10px; }
-    .kbd { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background:#0f0f14; border:1px solid #2a2a33; padding:2px 6px; border-radius:8px; }
+
+    .center { text-align:center; }
+    .big { font-size: 22px; }
   </style>
 </head>
+
 <body>
   <div class="wrap">
     <div class="card">
-      <div class="row" style="justify-content:space-between;">
-        <h1>My Test Simulator</h1>
-        <span class="pill" id="installHint" style="display:none;">Installable</span>
-      </div>
-
-      <div class="grid2">
-        <div class="row">
-          <label class="muted">Subject</label>
-          <select id="subjectSelect"></select>
-
-          <label class="muted">Mode</label>
-          <select id="modeSelect">
-            <option value="smart">Smart practice (weak ↑)</option>
-            <option value="random">Random</option>
-            <option value="wrong">Review wrong only</option>
-          </select>
-        </div>
-
-        <div class="row" style="justify-content:flex-end;">
-          <button id="btnNew">Next</button>
-          <button id="btnReset" title="Resets stats for current subject">Reset subject stats</button>
-          <button id="btnExport">Export progress</button>
-        </div>
-      </div>
-
-      <div class="spacer"></div>
-
       <div class="row">
-        <input type="file" id="fileInput" accept="application/json" />
-        <span class="muted">Load your question file (JSON). Try the built-in demo first.</span>
+        <h1>Test Simulator</h1>
+        <span class="pill">20 questions</span>
       </div>
 
       <div class="spacer"></div>
 
-      <div class="stats" id="stats"></div>
+      <div class="controls">
+        <label class="muted">Subject</label>
+        <select id="subjectSelect"></select>
+        <button id="btnStart">Start 20Q Run</button>
+      </div>
 
       <div class="spacer"></div>
-      <div class="card" style="background:#101014;">
-        <div class="row" style="justify-content:space-between;">
-          <span class="pill" id="subjectPill">—</span>
-          <span class="muted">Tip: keep it mindless — click, learn, repeat.</span>
+
+      <div class="qbox" id="mainBox">
+        <div class="qtop">
+          <span class="pill" id="progressPill">Not started</span>
+          <span class="muted" id="scoreMini"></span>
         </div>
 
-        <div class="q" id="qText">Loading…</div>
+        <div class="q" id="qText" style="margin-top: 16px;">
+          Pick a subject and press <b>Start 20Q Run</b>.
+        </div>
+
         <div class="answers" id="answers"></div>
 
-        <div class="toast muted" id="feedback"></div>
+        <div class="spacer"></div>
+        <div class="muted" id="feedback"></div>
+
+        <div class="spacer"></div>
+        <div class="controls">
+          <button id="btnNext" disabled>Next</button>
+          <button id="btnRestart" style="display:none;">Restart</button>
+        </div>
       </div>
 
       <div class="spacer"></div>
       <div class="muted">
-        Works offline after first open. Install on Android Chrome:
-        <span class="kbd">⋮</span> → <span class="kbd">Add to Home screen</span>.
+        Tip: On Android Chrome you can install it:
+        <b>⋮ → Add to Home screen</b>.
       </div>
     </div>
   </div>
 
 <script>
-/** ---------------- Demo questions (use until you upload your own JSON) ---------------- **/
-const DEMO_BANK = [
-  {
-    id: "bio_mitosis_1",
-    subject: "Biology",
-    question: "Which phase of mitosis is characterized by chromosomes aligning in the middle of the cell?",
-    choices: ["Prophase", "Metaphase", "Anaphase", "Telophase"],
-    answerIndex: 1,
-    explanation: "In metaphase, chromosomes line up at the metaphase plate."
-  },
-  {
-    id: "hist_weimar_1",
-    subject: "History",
-    question: "Which factor contributed to political instability in the Weimar Republic?",
-    choices: ["Two-party system", "Proportional representation leading to many parties", "No elections", "Absolute monarchy"],
-    answerIndex: 1,
-    explanation: "Fragmentation in parliament made stable majorities difficult."
-  },
-  {
-    id: "powi_market_1",
-    subject: "PoWi",
-    question: "What is a common argument for state intervention in a market?",
-    choices: ["To eliminate all competition", "To correct market failures", "To remove taxes permanently", "To end trade"],
-    answerIndex: 1,
-    explanation: "Intervention is often justified to address market failures (e.g., externalities)."
-  },
-  {
-    id: "spanish_subj_1",
-    subject: "Spanish",
-    question: "Which sentence correctly uses the subjunctive after 'Es posible que'?",
-    choices: ["Es posible que viene mañana.", "Es posible que venga mañana.", "Es posible que viene mañana él.", "Es posible que venir mañana."],
-    answerIndex: 1,
-    explanation: "'Es posible que' triggers subjunctive: 'venga'."
-  },
-  {
-    id: "english_register_1",
-    subject: "English",
-    question: "Which is usually appropriate for a formal essay?",
-    choices: ["gonna", "wanna", "therefore", "kinda"],
-    answerIndex: 2,
-    explanation: "'Therefore' is formal; the others are informal."
-  },
-  {
-    id: "physics_ohm_1",
-    subject: "Physics",
-    question: "Ohm’s law states that…",
-    choices: ["P = U × I", "U = R × I", "E = m × c²", "F = m × a"],
-    answerIndex: 1,
-    explanation: "Voltage equals resistance times current: U = R · I."
+/** ---------------- Load questions.json from your site ---------------- **/
+async function loadQuestionsFromFile() {
+  try {
+    const res = await fetch("./questions.json", { cache: "no-store" });
+    if (!res.ok) throw new Error("Could not fetch questions.json");
+    const data = await res.json();
+    const questions = Array.isArray(data) ? data : data.questions;
+    if (!Array.isArray(questions)) throw new Error("Invalid questions.json format");
+    validateBank(questions);
+    return questions;
+  } catch (e) {
+    // Fallback demo bank if questions.json fails
+    console.warn(e);
+    return DEMO_BANK;
   }
+}
+
+function validateBank(questions) {
+  for (const q of questions) {
+    if (!q.id || !q.subject || !q.question || !Array.isArray(q.choices) || typeof q.answerIndex !== "number") {
+      throw new Error("A question is missing required fields.");
+    }
+    if (q.answerIndex < 0 || q.answerIndex >= q.choices.length) {
+      throw new Error(`Question ${q.id} has invalid answerIndex.`);
+    }
+  }
+}
+
+/** ---------------- Demo questions (only used if questions.json can’t load) ---------------- **/
+const DEMO_BANK = [
+  { id:"bio_1", subject:"Biology", question:"Which organelle produces ATP?", choices:["Nucleus","Mitochondria","Ribosome","Golgi apparatus"], answerIndex:1, explanation:"Mitochondria produce ATP." },
+  { id:"hist_1", subject:"History", question:"Which factor contributed to instability in Weimar?", choices:["Two-party system","Many parties via proportional representation","No elections","Absolute monarchy"], answerIndex:1, explanation:"Fragmentation made stable majorities difficult." },
+  { id:"powi_1", subject:"PoWi", question:"A common argument for state intervention is…", choices:["End competition","Correct market failures","Remove all taxes","End trade"], answerIndex:1, explanation:"Intervention often targets market failures." },
+  { id:"spa_1", subject:"Spanish", question:"Correct subjunctive after 'Es posible que':", choices:["…viene","…venga","…venir","…viniendo"], answerIndex:1, explanation:"'Es posible que' triggers subjunctive." },
+  { id:"eng_1", subject:"English", question:"Which word is most formal?", choices:["gonna","kinda","therefore","wanna"], answerIndex:2, explanation:"'Therefore' is formal." },
+  { id:"phy_1", subject:"Physics", question:"Ohm’s law is…", choices:["P=U·I","U=R·I","E=m·c²","F=m·a"], answerIndex:1, explanation:"Voltage equals resistance times current." }
 ];
 
-/** ---------------- Storage & helpers ---------------- **/
-const LS_KEY_BANK = "quiz.bank.v1";
-const LS_KEY_PROGRESS = "quiz.progress.v1";
-
-function loadJSON(key, fallback){ try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; } }
-function saveJSON(key, value){ localStorage.setItem(key, JSON.stringify(value)); }
-
-function nowTs(){ return Date.now(); }
-
-let BANK = loadJSON(LS_KEY_BANK, null) || DEMO_BANK;
-let PROGRESS = loadJSON(LS_KEY_PROGRESS, { byId: {}, bySubject: {} });
-
-function ensureProgress(q){
-  if(!PROGRESS.byId[q.id]){
-    PROGRESS.byId[q.id] = { seen: 0, correct: 0, wrong: 0, lastSeen: 0, lastWrong: 0, streak: 0 };
-  }
-  if(!PROGRESS.bySubject[q.subject]){
-    PROGRESS.bySubject[q.subject] = { seen: 0, correct: 0, wrong: 0, streak: 0, lastDay: "" };
-  }
-}
-
-function uniqueSubjects(){
-  return [...new Set(BANK.map(q => q.subject))].sort((a,b)=>a.localeCompare(b));
-}
-
+/** ---------------- Helpers ---------------- **/
 function shuffle(arr){
   const a = arr.slice();
   for(let i=a.length-1;i>0;i--){
@@ -185,261 +140,156 @@ function shuffle(arr){
   return a;
 }
 
-/** Smart weight: show weak & not-recent questions more */
-function pickQuestion(questions, mode){
-  if(questions.length === 0) return null;
-
-  const wrongOnly = mode === "wrong";
-  let pool = questions;
-
-  if(wrongOnly){
-    pool = questions.filter(q => {
-      const p = PROGRESS.byId[q.id];
-      return p && p.wrong > 0;
-    });
-    if(pool.length === 0) pool = questions; // fallback
-  }
-
-  if(mode === "random"){
-    return pool[Math.floor(Math.random()*pool.length)];
-  }
-
-  // smart mode: weighted sampling
-  const weights = pool.map(q => {
-    ensureProgress(q);
-    const p = PROGRESS.byId[q.id];
-    const total = Math.max(1, p.seen);
-    const wrongRate = p.wrong / total;             // 0..1
-    const recency = (nowTs() - (p.lastSeen || 0)); // ms
-    const recencyBoost = Math.min(2.0, recency / (1000*60*60*6)); // up to ~2 if not seen in 12h+
-    const base = 0.6 + wrongRate*2.2 + recencyBoost*0.7;
-    return Math.max(0.2, base);
-  });
-
-  const sum = weights.reduce((a,b)=>a+b,0);
-  let r = Math.random()*sum;
-  for(let i=0;i<pool.length;i++){
-    r -= weights[i];
-    if(r <= 0) return pool[i];
-  }
-  return pool[pool.length-1];
+function uniqueSubjects(bank){
+  return [...new Set(bank.map(q => q.subject))].sort((a,b)=>a.localeCompare(b));
 }
+
+/** ---------------- App state ---------------- **/
+let BANK = [];
+let RUN = [];            // exactly 20 questions (or fewer if not enough exist)
+let index = 0;
+let score = 0;
+let locked = false;
+let current = null;
+let currentCorrectDisplayIndex = -1;
 
 /** ---------------- UI ---------------- **/
 const subjectSelect = document.getElementById("subjectSelect");
-const modeSelect = document.getElementById("modeSelect");
+const btnStart = document.getElementById("btnStart");
+const btnNext = document.getElementById("btnNext");
+const btnRestart = document.getElementById("btnRestart");
 const qText = document.getElementById("qText");
 const answersDiv = document.getElementById("answers");
 const feedback = document.getElementById("feedback");
-const statsDiv = document.getElementById("stats");
-const subjectPill = document.getElementById("subjectPill");
-const fileInput = document.getElementById("fileInput");
-const btnNew = document.getElementById("btnNew");
-const btnReset = document.getElementById("btnReset");
-const btnExport = document.getElementById("btnExport");
-const installHint = document.getElementById("installHint");
+const progressPill = document.getElementById("progressPill");
+const scoreMini = document.getElementById("scoreMini");
 
-let current = null;
-let locked = false;
-
-function renderSubjects(){
-  const subs = uniqueSubjects();
-  subjectSelect.innerHTML = "";
-  for(const s of subs){
-    const opt = document.createElement("option");
-    opt.value = s; opt.textContent = s;
-    subjectSelect.appendChild(opt);
-  }
-  const last = localStorage.getItem("quiz.lastSubject");
-  if(last && subs.includes(last)) subjectSelect.value = last;
-}
-
-function dayKey(){
-  const d = new Date();
-  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
-}
-
-function updateStats(subject){
-  // overall subject stats
-  const s = PROGRESS.bySubject[subject] || { seen:0, correct:0, wrong:0, streak:0, lastDay:"" };
-  const acc = s.seen ? Math.round((s.correct/s.seen)*100) : 0;
-
-  // wrong count in subject
-  const qs = BANK.filter(q => q.subject === subject);
-  const wrongCount = qs.filter(q => (PROGRESS.byId[q.id]?.wrong ?? 0) > 0).length;
-
-  statsDiv.innerHTML = "";
-  const items = [
-    ["Seen", s.seen],
-    ["Correct", s.correct],
-    ["Wrong", s.wrong],
-    ["Accuracy", acc + "%"],
-    ["Wrong to review", wrongCount],
-    ["Streak", s.streak]
-  ];
-  for(const [k,v] of items){
-    const el = document.createElement("span");
-    el.className = "pill";
-    el.textContent = `${k}: ${v}`;
-    statsDiv.appendChild(el);
-  }
-}
-
-function startNew(){
-  const subject = subjectSelect.value;
-  const mode = modeSelect.value;
-  localStorage.setItem("quiz.lastSubject", subject);
-
-  const qs = BANK.filter(q => q.subject === subject);
-  if(qs.length === 0){
-    qText.textContent = "No questions in this subject.";
-    answersDiv.innerHTML = "";
-    feedback.textContent = "";
-    return;
-  }
-
-  current = pickQuestion(qs, mode);
-  ensureProgress(current);
-  locked = false;
-  feedback.textContent = "";
-  subjectPill.textContent = subject;
-
-  // render
-  qText.textContent = current.question;
+function setIdleUI(){
+  progressPill.textContent = "Not started";
+  scoreMini.textContent = "";
+  qText.innerHTML = `Pick a subject and press <b>Start 20Q Run</b>.`;
   answersDiv.innerHTML = "";
+  feedback.textContent = "";
+  btnNext.disabled = true;
+  btnRestart.style.display = "none";
+}
 
-  // shuffle choices but keep answer mapping
+function buildRun(subject){
+  const pool = BANK.filter(q => q.subject === subject);
+  const shuffled = shuffle(pool);
+
+  // Exactly 20 questions if possible. If fewer exist, use all available.
+  RUN = shuffled.slice(0, Math.min(20, shuffled.length));
+  index = 0;
+  score = 0;
+
+  if (RUN.length < 20) {
+    feedback.textContent = `⚠️ This subject currently has only ${RUN.length} questions. Add more to reach exactly 20.`;
+  } else {
+    feedback.textContent = "";
+  }
+}
+
+function renderQuestion(){
+  locked = false;
+  btnNext.disabled = true;
+  answersDiv.innerHTML = "";
+  feedback.textContent = "";
+
+  current = RUN[index];
+
+  progressPill.textContent = `Question ${index + 1} / ${RUN.length}`;
+  scoreMini.textContent = `Score: ${score}`;
+
+  qText.textContent = current.question;
+
+  // shuffle answers for display
   const indices = shuffle(current.choices.map((_,i)=>i));
   const correctOriginal = current.answerIndex;
-  const correctShuffledIndex = indices.indexOf(correctOriginal);
+  currentCorrectDisplayIndex = indices.indexOf(correctOriginal);
 
   indices.forEach((origIdx, displayIdx) => {
     const b = document.createElement("button");
     b.className = "ans";
     b.textContent = current.choices[origIdx];
-    b.onclick = () => choose(displayIdx, correctShuffledIndex, b);
+    b.onclick = () => choose(displayIdx, b);
     answersDiv.appendChild(b);
   });
-
-  updateStats(subject);
 }
 
-function bumpStreak(subjectObj){
-  const today = dayKey();
-  if(subjectObj.lastDay !== today){
-    // new day: if they had activity yesterday, continue streak; else reset
-    // simple streak: if lastDay was yesterday, +1, else reset to 1
-    const last = subjectObj.lastDay;
-    const yesterday = new Date(); yesterday.setDate(yesterday.getDate()-1);
-    const yKey = yesterday.getFullYear()+"-"+String(yesterday.getMonth()+1).padStart(2,"0")+"-"+String(yesterday.getDate()).padStart(2,"0");
-    subjectObj.streak = (last === yKey) ? (subjectObj.streak + 1) : 1;
-    subjectObj.lastDay = today;
-  }
-}
-
-function choose(chosenIdx, correctIdx, buttonEl){
+function choose(chosenDisplayIdx, buttonEl){
   if(locked) return;
   locked = true;
-
-  const subject = current.subject;
-  ensureProgress(current);
-
-  const p = PROGRESS.byId[current.id];
-  const s = PROGRESS.bySubject[subject];
-
-  p.seen += 1;
-  p.lastSeen = nowTs();
-  s.seen += 1;
 
   const buttons = [...answersDiv.querySelectorAll("button")];
   buttons.forEach(b => b.disabled = true);
 
-  const wasCorrect = chosenIdx === correctIdx;
+  const correct = chosenDisplayIdx === currentCorrectDisplayIndex;
 
-  if(wasCorrect){
-    p.correct += 1;
-    p.streak += 1;
-    s.correct += 1;
-    bumpStreak(s);
-
+  if(correct){
+    score += 1;
     buttonEl.classList.add("correct");
-    buttons[correctIdx]?.classList.add("correct");
-    feedback.textContent = "✅ Correct. " + (current.explanation ? current.explanation : "");
+    buttons[currentCorrectDisplayIndex]?.classList.add("correct");
+    feedback.textContent = "✅ Correct.";
   } else {
-    p.wrong += 1;
-    p.lastWrong = nowTs();
-    p.streak = 0;
-    s.wrong += 1;
-    bumpStreak(s);
-
     buttonEl.classList.add("wrong");
-    buttons[correctIdx]?.classList.add("correct");
-    feedback.textContent = "❌ Wrong. " + (current.explanation ? current.explanation : "");
+    buttons[currentCorrectDisplayIndex]?.classList.add("correct");
+    feedback.textContent = "❌ Wrong.";
   }
 
-  saveJSON(LS_KEY_PROGRESS, PROGRESS);
-  updateStats(subject);
+  if (current.explanation) {
+    feedback.textContent += " " + current.explanation;
+  }
+
+  scoreMini.textContent = `Score: ${score}`;
+  btnNext.disabled = false;
 }
 
-/** ---------------- Import / Export ---------------- **/
-fileInput.addEventListener("change", async (e) => {
-  const file = e.target.files?.[0];
-  if(!file) return;
-  try{
-    const text = await file.text();
-    const data = JSON.parse(text);
+function finishRun(){
+  answersDiv.innerHTML = "";
+  const percent = Math.round((score / RUN.length) * 100);
 
-    // Accept either { questions: [...] } or [...]
-    const questions = Array.isArray(data) ? data : data.questions;
-    if(!Array.isArray(questions)) throw new Error("Invalid format");
+  progressPill.textContent = "Finished";
+  qText.innerHTML = `
+    <div class="center">
+      <div class="big">Done ✅</div>
+      <div class="spacer"></div>
+      <div>You scored <b>${score} / ${RUN.length}</b> (${percent}%).</div>
+      <div class="spacer"></div>
+      <div class="muted">Restart to do a new randomized run.</div>
+    </div>
+  `;
+  feedback.textContent = "";
+  btnNext.disabled = true;
+  btnRestart.style.display = "inline-block";
+}
 
-    // Basic validation
-    for(const q of questions){
-      if(!q.id || !q.subject || !q.question || !Array.isArray(q.choices) || typeof q.answerIndex !== "number"){
-        throw new Error("One or more questions missing required fields.");
-      }
-      if(q.answerIndex < 0 || q.answerIndex >= q.choices.length){
-        throw new Error(`Question ${q.id} has invalid answerIndex.`);
-      }
-    }
+btnStart.addEventListener("click", () => {
+  const subject = subjectSelect.value;
+  buildRun(subject);
 
-    BANK = questions;
-    saveJSON(LS_KEY_BANK, BANK);
+  if(RUN.length === 0){
+    qText.textContent = "No questions found for this subject. Add some to questions.json.";
+    return;
+  }
 
-    renderSubjects();
-    startNew();
-    feedback.textContent = "✅ Loaded question file.";
-  } catch(err){
-    feedback.textContent = "⚠️ Could not load file: " + err.message;
+  renderQuestion();
+});
+
+btnNext.addEventListener("click", () => {
+  if(!RUN.length) return;
+  if(index < RUN.length - 1){
+    index += 1;
+    renderQuestion();
+  } else {
+    finishRun();
   }
 });
 
-btnNew.addEventListener("click", startNew);
-
-btnReset.addEventListener("click", () => {
+btnRestart.addEventListener("click", () => {
   const subject = subjectSelect.value;
-  // remove per-question progress for this subject
-  const ids = BANK.filter(q => q.subject === subject).map(q => q.id);
-  ids.forEach(id => { delete PROGRESS.byId[id]; });
-  delete PROGRESS.bySubject[subject];
-  saveJSON(LS_KEY_PROGRESS, PROGRESS);
-  feedback.textContent = "Reset stats for " + subject + ".";
-  startNew();
-});
-
-btnExport.addEventListener("click", () => {
-  const payload = {
-    exportedAt: new Date().toISOString(),
-    bankCount: BANK.length,
-    progress: PROGRESS
-  };
-  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "quiz-progress.json";
-  a.click();
-  URL.revokeObjectURL(a.href);
-  feedback.textContent = "Exported progress JSON.";
+  buildRun(subject);
+  renderQuestion();
 });
 
 /** ---------------- PWA service worker ---------------- **/
@@ -449,13 +299,20 @@ if ("serviceWorker" in navigator) {
   });
 }
 
-/** install hint */
-window.addEventListener("beforeinstallprompt", () => {
-  installHint.style.display = "inline-block";
-});
+/** ---------------- Init ---------------- **/
+(async function init(){
+  BANK = await loadQuestionsFromFile();
 
-renderSubjects();
-startNew();
+  const subs = uniqueSubjects(BANK);
+  subjectSelect.innerHTML = "";
+  for(const s of subs){
+    const opt = document.createElement("option");
+    opt.value = s; opt.textContent = s;
+    subjectSelect.appendChild(opt);
+  }
+
+  setIdleUI();
+})();
 </script>
 </body>
 </html>
