@@ -1,0 +1,12 @@
+{
+  "questions": [
+    {
+      "id": "bio_cell_1",
+      "subject": "Biology",
+      "question": "Which organelle is responsible for ATP production?",
+      "choices": ["Nucleus", "Mitochondria", "Ribosome", "Golgi apparatus"],
+      "answerIndex": 1,
+      "explanation": "Mitochondria produce ATP via cellular respiration."
+    }
+  ]
+}
